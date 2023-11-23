@@ -79,6 +79,7 @@ class MainView(QWidget):
         self.bottomButtonsLayout.setObjectName("bottomButtonsLayout")
         self.btnLog = QPushButton("LOG")
         self.btnLog.setObjectName("btnLog")
+        self.btnLog.setFixedSize(100, 40)
         self.bottomButtonsLayout.addWidget(self.btnLog)
         spacerItem = QSpacerItem(
             40,
@@ -89,16 +90,90 @@ class MainView(QWidget):
         self.bottomButtonsLayout.addItem(spacerItem)
         self.btnSettings = QPushButton("SETTINGS")
         self.btnSettings.setObjectName("btnSettings")
+        self.btnSettings.setFixedSize(100, 40)
         self.bottomButtonsLayout.addWidget(self.btnSettings)
         self.mainLayout.addLayout(self.bottomButtonsLayout)
 
         self.setLayout(self.mainLayout)
 
 
+class LogItem(QWidget):
+    def __init__(self, vitamin_d, time, time_duration):
+        super(LogItem, self).__init__()
+        self.vitamin_d = vitamin_d
+        self.time = time
+        self.time_duration = time_duration
+        self.init_ui()
+
+    def init_ui(self):
+        font = QtGui.QFont()
+        font.setFamily("Lato")
+        self.setFont(font)
+
+        self.mainLayout = QHBoxLayout()
+        self.mainLayout.setObjectName("mainLayout")
+
+        self.labelTime = QLabel(self.time)
+        self.labelTime.setObjectName("labelTime")
+
+        self.labelTimeDuration = QLabel(self.time_duration)
+        self.labelTimeDuration.setObjectName("labelTimeDuration")
+
+        self.labelVitaminD = QLabel(self.vitamin_d)
+        self.labelVitaminD.setObjectName("labelVitaminD")
+        font = QtGui.QFont()
+        font.setFamily("Monospace")
+        font.setPointSize(24)
+        font.setBold(True)
+        self.labelVitaminD.setFont(font)
+
+        spacerItem = QSpacerItem(
+            40,
+            20,
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Minimum,
+        )
+
+        layoutContainerFrame = QFrame()
+        layoutContainerFrame.setObjectName("layoutContainerFrame")
+        layoutContainer = QHBoxLayout()
+
+        layoutContainer.addWidget(self.labelTime)
+        layoutContainer.addWidget(self.labelTimeDuration)
+        layoutContainer.addItem(spacerItem)
+        layoutContainer.addWidget(self.labelVitaminD)
+        layoutContainerFrame.setLayout(layoutContainer)
+        layoutContainerFrame.setFixedSize(415, 80)
+
+        self.mainLayout.addWidget(layoutContainerFrame)
+
+        self.setLayout(self.mainLayout)
+
+
 class BodyImageView(QWidget):
-    def __init__(self):
+    def __init__(self, body_states=None):
         super().__init__()
 
+        if body_states:
+            self.body_states = body_states
+        else:
+            self.body_states = {
+                "head": True,
+                "neck": True,
+                "left_arm_upper": True,
+                "left_arm_lower": True,
+                "left_palm": True,
+                "right_arm_upper": True,
+                "right_arm_lower": True,
+                "right_palm": True,
+                "torso": True,
+                "left_leg_upper": True,
+                "left_leg_lower": True,
+                "left_feet": True,
+                "right_leg_upper": True,
+                "right_leg_lower": True,
+                "right_feet": True,
+            }
         self.init_ui()
 
     def init_ui(self):
@@ -134,15 +209,15 @@ class BodyImageView(QWidget):
         }
 
         for btn_id, btn in self.btn_dict.items():
-            print("Linking", btn_id)
             btn[0].setFixedSize(30, 30)
-            btn[0].setCheckable(True)
-            btn[0].setChecked(True)
-            btn[0].clicked.connect(lambda _, bid=btn_id: self.button_clicked(bid))
-            btn[0].setStyleSheet(
-                "border : 2px solid black; border-radius : 15px; background-color: transparent;"
+            self.btn_dict[btn_id][0].setStyleSheet(
+                "border : 2px solid #00008B; border-radius : 15px; background-color: transparent;"
             )
+            # btn[0].setCheckable(True)
+            # btn[0].setChecked(self.body_states[btn_id])
+            btn[0].clicked.connect(lambda _, bid=btn_id: self.button_clicked(bid))
             btn_item = self.scene.addWidget(btn[0])
+            btn[0].setObjectName("btnBody")
             btn_item.setPos(btn[1][0], btn[1][1])
 
         # Create a QVBoxLayout for the main widget
@@ -167,8 +242,8 @@ class LogView(QWidget):
 
         self.setup_callbacks()
 
-        self.add_log("Hello")
-        self.add_log("World")
+        self.add_log(("0000 IU", "14:00", "10 MIN"))
+        self.add_log(("0000 IU", "13:00", "10 MIN"))
 
     def setup_callbacks(self):
         if "back" in self.button_callbacks:
@@ -191,14 +266,16 @@ class LogView(QWidget):
         # Back button
         self.btnBack = QPushButton("BACK")
         self.btnBack.setObjectName("btnBack")
-        self.btnBack.setMaximumSize(QtCore.QSize(100, 16777215))
+        self.btnBack.setFixedSize(100, 40)
+        # self.btnBack.setMaximumSize(QtCore.QSize(100, 16777215))
         self.layoutLeft.addWidget(self.btnBack)
 
         # Day switcher
         self.layoutDayBar = QHBoxLayout()
         self.layoutDayBar.setObjectName("layoutDayBar")
         self.btnDayPrev = QPushButton("<")
-        self.btnDayPrev.setObjectName("btnDayPrev")
+        self.btnDayPrev.setObjectName("btnDay")
+        self.btnDayPrev.setFixedSize(30, 30)
         self.layoutDayBar.addWidget(self.btnDayPrev)
         self.labelDay = QLabel("TODAY")
         self.labelDay.setObjectName("labelDay")
@@ -206,9 +283,13 @@ class LogView(QWidget):
             self.labelDay, 0, QtCore.Qt.AlignmentFlag.AlignHCenter
         )
         self.btnDayNext = QPushButton(">")
-        self.btnDayNext.setObjectName("btnDayNext")
+        self.btnDayNext.setObjectName("btnDay")
+        self.btnDayNext.setFixedSize(30, 30)
         self.layoutDayBar.addWidget(self.btnDayNext)
-        self.layoutLeft.addLayout(self.layoutDayBar)
+        layoutDayBarWidget = QWidget()
+        layoutDayBarWidget.setLayout(self.layoutDayBar)
+        layoutDayBarWidget.setFixedHeight(50)
+        self.layoutLeft.addWidget(layoutDayBarWidget)
         self.txtDayValue = QLabel("0000")
         self.txtDayValue.setMaximumSize(QtCore.QSize(16777215, 100))
         font = QtGui.QFont()
@@ -223,14 +304,25 @@ class LogView(QWidget):
 
         # Placeholder for log list
         self.layoutLog = QVBoxLayout()
+        self.layoutLog.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         self.layoutLog.setObjectName("layoutLog")
-        self.layoutLeft.addLayout(self.layoutLog)
+        layoutLogWidget = QWidget()
+        layoutLogWidget.setLayout(self.layoutLog)
+        # layoutLogWidget.setFixedHeight(420)
+        self.layoutLeft.addWidget(layoutLogWidget)
 
         # Contain layout within widget and set max width
         layoutLeftWidget = QWidget()
         layoutLeftWidget.setLayout(self.layoutLeft)
         layoutLeftWidget.setMaximumSize(QtCore.QSize(480, 16777215))
         self.mainLayout.addWidget(layoutLeftWidget)
+
+        self.btnAddLog = QPushButton("+")
+        self.btnAddLog.setObjectName("btnAddLog")
+        self.btnAddLog.setFixedSize(50, 50)
+        self.layoutLeft.addWidget(
+            self.btnAddLog, alignment=QtCore.Qt.AlignmentFlag.AlignHCenter
+        )
 
         self.line = QFrame()
         self.line.setFrameShape(QFrame.Shape.VLine)
@@ -258,7 +350,7 @@ class LogView(QWidget):
         self.setLayout(self.mainLayout)
 
     def add_log(self, log):
-        self.layoutLog.addWidget(QLabel(log))
+        self.layoutLog.addWidget(LogItem(log[0], log[1], log[2]))
 
 
 class SettingsView(QWidget):
