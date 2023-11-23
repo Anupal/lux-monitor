@@ -12,6 +12,9 @@ class MainWindow(QMainWindow):
 
         # Set the custom widget as the central widget
         self.change_view("main")
+        with open("ui/style.css", "r") as file:
+            style_sheet = file.read()
+            self.setStyleSheet(style_sheet)
 
         # Set window properties
         self.setGeometry(100, 100, 1000, 800)
